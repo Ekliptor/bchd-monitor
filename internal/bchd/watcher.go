@@ -93,6 +93,7 @@ func (w *BchdWatcher) readGrpcStream(node Node, ctx context.Context) {
 
 func (w *BchdWatcher) evalNodeStats() {
 	now := time.Now()
+	bestBlockHeight := w.Nodes.GetBestBlockHeight()
 
 	for _, node := range w.Nodes.Nodes {
 		if len(node.stats.LostConnections) != 0 {
@@ -118,12 +119,8 @@ func (w *BchdWatcher) evalNodeStats() {
 				w.logger.Errorf("Error sending 'connection lost' message %+v", err)
 			}
 		}
-	}
 
-	bestBlockHeight := w.Nodes.GetBestBlockHeight()
-
-	for _, node := range w.Nodes.Nodes {
-		// check if best block ist behind oder nodes
+		// check if best block ist behind other nodes
 		if w.BlocksBehindWarning > 0 && node.stats.BlockHeight.BlockNumber+w.BlocksBehindWarning <= bestBlockHeight.BlockNumber {
 			err := node.NotifyError(fmt.Sprintf("Node is behind:\r\nbest block (network) %d\r\nbest block (local) %d",
 				bestBlockHeight.BlockNumber, node.stats.BlockHeight.BlockNumber))
