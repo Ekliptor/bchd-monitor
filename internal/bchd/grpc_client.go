@@ -16,7 +16,7 @@ import (
 )
 
 type GRPCClient struct {
-	Node Node
+	Node   *Node
 	Client pb.BchrpcClient
 
 	logger  log.Logger
@@ -26,7 +26,7 @@ type GRPCClient struct {
 
 func NewGrpcClient(node Node, logger log.Logger, monitor *monitoring.HttpMonitoring) (grpcClient *GRPCClient, err error) {
 	grpcClient = &GRPCClient{
-		Node: node,
+		Node: &node,
 		logger: logger.WithFields(log.Fields{
 			"module": "bchd_grpc",
 		}),

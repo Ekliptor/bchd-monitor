@@ -16,7 +16,7 @@ type Trace struct {
 	IpAddr *net.IPAddr
 
 	// Config
-	Host string // hostname or IP address
+	Host    string // hostname or IP address
 	options *traceroute.TracerouteOptions
 }
 
@@ -29,9 +29,9 @@ func NewTrace(ipAddr *net.IPAddr, options *traceroute.TracerouteOptions) *Trace 
 	}
 
 	return &Trace{
-		Result:    nil,
-		IpAddr: ipAddr,
-		Host: ipAddr.String(),
+		Result:  nil,
+		IpAddr:  ipAddr,
+		Host:    ipAddr.String(),
 		options: options,
 	}
 }

@@ -176,6 +176,7 @@ func (w *BchdWatcher) loadNodeConfig() error {
 
 	for _, node := range w.Nodes.Nodes {
 		node.monitor = w.monitor
+		node.stats = &NodeStats{}
 	}
 
 	w.BlocksBehindWarning = viper.GetUint32("BCHD.BlocksBehindWarning")

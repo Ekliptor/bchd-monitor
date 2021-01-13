@@ -33,33 +33,33 @@ type Node struct {
 	Address string `mapstructure:"Address"`
 
 	AuthenticationToken string `mapstructure:"AuthenticationToken"` // gRPC metadata with auth token
-	RootCertFile string `mapstructure:"RootCertFile"` // path to self-signed cert
-	CaDomain string `mapstructure:"CaDomain"` // domain to validate certificate against (to override the domain in Address)
-	AllowSelfSigned bool `mapstructure:"AllowSelfSigned"`
+	RootCertFile        string `mapstructure:"RootCertFile"`        // path to self-signed cert
+	CaDomain            string `mapstructure:"CaDomain"`            // domain to validate certificate against (to override the domain in Address)
+	AllowSelfSigned     bool   `mapstructure:"AllowSelfSigned"`
 
 	Notify []notification.NotificationReceiver `mapstructure:"Notify"`
 
-	stats NodeStats
+	stats *NodeStats
 
 	monitor *monitoring.HttpMonitoring
 }
 
 // Node stats available via HTTP API as JSON
 type NodeStats struct {
-	Connected time.Time `json:"connected"`
-	BlockHeight BestBlockHeight `json:"block_height"`
+	Connected       time.Time           `json:"connected"`
+	BlockHeight     BestBlockHeight     `json:"block_height"`
 	LostConnections []*NodeConnectError `json:"lost_connections"`
-	LastNotified time.Time `json:"last_notified"`
+	LastNotified    time.Time           `json:"last_notified"`
 }
 
 type BestBlockHeight struct {
-	BlockNumber uint32 `json:"block_number"`
-	Received time.Time `json:"received"` // when WE saw this node got this block
+	BlockNumber uint32    `json:"block_number"`
+	Received    time.Time `json:"received"` // when WE saw this node got this block
 }
 
 type NodeConnectError struct {
-	When time.Time `json:"when"`
-	Error error `json:"error"`
+	When  time.Time `json:"when"`
+	Error error     `json:"error"`
 }
 
 // Adds a connection error such as dropped gRPC stream.
@@ -86,7 +86,7 @@ func (n *Node) SetBlockHeight(blockHeight uint32) {
 }
 
 // Sends the error message to the operator(s) of this node.
-func (n* Node) NotifyError(msg string) error {
+func (n *Node) NotifyError(msg string) error {
 	// if we recently sent a notification to this node silently swallow it
 	if n.stats.LastNotified.Add(n.getNotificationPause()).After(time.Now()) {
 		return nil
