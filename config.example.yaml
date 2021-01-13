@@ -1,0 +1,67 @@
+App:
+  Name: "bchd-monitor"
+
+# BCHD instances to monitor
+BCHD:
+  # BCHD servers: bchd.imaginary.cash:8335 or bchd.greyh.at:8335, bchd.fountainhead.cash:443, bchd.cashtippr.com:8335
+  # https://github.com/simpleledgerinc/grpc-bchrpc-node#bchd-servers
+  Nodes:
+    - Address: "first-node.cash:8335"
+      AuthenticationToken: ""
+      RootCertFile: ""
+      CaDomain: ""
+      AllowSelfSigned: false
+
+      # an array of receivers of notifications (the node operators)
+      Notify:
+        - Method: "pushover" # email|pushover|telegram
+
+          # Email
+          SmtpHost: "smtp.gmail.com"
+          SmtpPort: 465
+          FromAddress: ""
+          FromPassword: ""
+          RecAddress: "" # receiver email. can be comma-separated list
+
+          # Pushover
+          AppToken: ""
+          Receiver: ""
+
+          # Telegram
+          # channel ID must start with @ or be a numeric channel ID from: curl -X POST https://api.telegram.org/bot[BOT_API_KEY]/getUpdates
+          Token: "" # for telegram: Received by talking to @BotFather
+          Channel: "" # for telegram: Channel ID or user ID
+
+    - Address: "second-node.cash:8335"
+      AuthenticationToken: ""
+      RootCertFile: ""
+      CaDomain: ""
+      AllowSelfSigned: false
+
+      #Notify: # optional - see above for available properties
+
+  # notify node operator when the following errors occur
+  BlocksBehindWarning: 2
+  LatestBlockWithinSec: 120 # every node must have the latest block within this interval
+  MaxDroppedConnectionsPerHour: 1
+
+  # stop sending notifications for n hours after each error (avoid spam)
+  PauseNotificationH: 6
+
+HTTP:
+  RequestTimeoutSec: 10
+
+Email:
+  ConnectTimeoutSec: 10
+
+# monitoring JSON of this process available at: http://your-ip:8485/monitoring
+Monitoring:
+  Enable: true
+  Address: ":8485"
+
+# Logger settings
+Log:
+  Level: debug
+  Color: true
+  JSON: false
+  EnableFile: false
