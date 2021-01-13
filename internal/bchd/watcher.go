@@ -137,7 +137,7 @@ func (w *BchdWatcher) evalNodeStats() {
 			diffSec := node.stats.BlockHeight.Received.Unix() - bestBlockHeight.Received.Unix()
 			if diffSec > int64(w.LatestBlockWithin.Seconds()) {
 				err := node.NotifyError(fmt.Sprintf("Node is receiving blocks late:\r\nbest block (network) %s\r\nbest block (local) %s",
-					bestBlockHeight.Received, node.stats.BlockHeight.Received))
+					bestBlockHeight.Received.Format(time.RFC3339), node.stats.BlockHeight.Received.Format(time.RFC3339)))
 				if err != nil {
 					w.logger.Errorf("Error sending 'blocks late' message %+v", err)
 				}
