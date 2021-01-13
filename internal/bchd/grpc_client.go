@@ -28,7 +28,8 @@ func NewGrpcClient(node Node, logger log.Logger, monitor *monitoring.HttpMonitor
 	grpcClient = &GRPCClient{
 		Node: &node,
 		logger: logger.WithFields(log.Fields{
-			"module": "bchd_grpc",
+			"module":  "bchd_grpc",
+			"address": node.Address,
 		}),
 		monitor: monitor,
 	}
