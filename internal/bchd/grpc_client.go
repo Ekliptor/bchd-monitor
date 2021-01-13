@@ -129,7 +129,7 @@ func (gc *GRPCClient) ReadTransactionStream(reqCtx context.Context, cancel conte
 
 			curHeight := uint32(tx.GetBlockHeight())
 			if curHeight != gc.Node.stats.BlockHeight.BlockNumber {
-				gc.logger.Debugf("Node %s received new block %d -> %d", gc.Node.Address, gc.Node.stats.BlockHeight, curHeight)
+				gc.logger.Debugf("Node %s received new block %d -> %d", gc.Node.Address, gc.Node.stats.BlockHeight.BlockNumber, curHeight)
 				gc.Node.SetBlockHeight(curHeight)
 			}
 		}
