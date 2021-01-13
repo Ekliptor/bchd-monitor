@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/Ekliptor/bchd-monitor/internal/log"
 	"github.com/Ekliptor/bchd-monitor/internal/monitoring"
-	"github.com/Ekliptor/bchd-monitor/internal/trace"
+	"github.com/Ekliptor/bchd-monitor/pkg/trace"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"net"
@@ -13,9 +13,9 @@ import (
 )
 
 type BchdWatcher struct {
-	Nodes *Nodes
-	BlocksBehindWarning uint32
-	LatestBlockWithin time.Duration
+	Nodes                        *Nodes
+	BlocksBehindWarning          uint32
+	LatestBlockWithin            time.Duration
 	MaxDroppedConnectionsPerHour uint32
 
 	logger  log.Logger
@@ -124,7 +124,7 @@ func (w *BchdWatcher) evalNodeStats() {
 
 	for _, node := range w.Nodes.Nodes {
 		// check if best block ist behind oder nodes
-		if w.BlocksBehindWarning > 0 && node.stats.BlockHeight.BlockNumber + w.BlocksBehindWarning <= bestBlockHeight.BlockNumber {
+		if w.BlocksBehindWarning > 0 && node.stats.BlockHeight.BlockNumber+w.BlocksBehindWarning <= bestBlockHeight.BlockNumber {
 			err := node.NotifyError(fmt.Sprintf("Node is behind:\r\nbest block (network) %d\r\nbest block (local) %d",
 				bestBlockHeight.BlockNumber, node.stats.BlockHeight.BlockNumber))
 			if err != nil {
