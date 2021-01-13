@@ -6,6 +6,7 @@ A monitoring client for [BCHD](https://github.com/gcash/bchd) BitcoinCash node.
 - check for gRPC connection getting lost more often than
   other nodes (and do a traceroute)
 - notify node operators via: Email, Telegram or Pushover
+- monitoring stats JSON is available at: http://localhost:8485/monitoring
 
 ## Building from source
 
