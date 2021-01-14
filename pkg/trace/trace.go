@@ -50,7 +50,7 @@ func (t *Trace) Run() error {
 	result, err := traceroute.Traceroute(t.Host, t.options)
 	if err != nil {
 		if err == syscall.EPERM {
-			return errors.Wrap(err, "unable to open raw socket for ICMP. On some operating systems (OSX) this requires root privileges.")
+			return errors.Wrap(err, "unable to open raw socket for ICMP. On some operating systems (OSX, Debian, ...) this requires root privileges.")
 		}
 		return err
 	}
