@@ -132,6 +132,7 @@ func (gc *GRPCClient) ReadTransactionStream(reqCtx context.Context, cancel conte
 			if curHeight != gc.Node.stats.BlockHeight.BlockNumber {
 				gc.logger.Debugf("Node %s received new block %d -> %d", gc.Node.Address, gc.Node.stats.BlockHeight.BlockNumber, curHeight)
 				gc.Node.SetBlockHeight(curHeight)
+				// TODO get "block time" into gRPC API and read it here ;)
 			}
 		}
 	}

@@ -114,6 +114,7 @@ func (w *BchdWatcher) evalNodeStats() {
 			if len(traceroute) != 0 {
 				msg += "\r\n\r\n" + traceroute
 			}
+			w.logger.Errorf("Node Error: %s", msg)
 			err := node.NotifyError(msg)
 			if err != nil {
 				w.logger.Errorf("Error sending 'connection lost' message %+v", err)
@@ -122,8 +123,10 @@ func (w *BchdWatcher) evalNodeStats() {
 
 		// check if best block ist behind other nodes
 		if w.BlocksBehindWarning > 0 && node.stats.BlockHeight.BlockNumber+w.BlocksBehindWarning <= bestBlockHeight.BlockNumber {
-			err := node.NotifyError(fmt.Sprintf("Node is behind:\r\nbest block (network) %d\r\nbest block (local) %d",
-				bestBlockHeight.BlockNumber, node.stats.BlockHeight.BlockNumber))
+			msg := fmt.Sprintf("Node is behind:\r\nbest block (network) %d\r\nbest block (local) %d",
+				bestBlockHeight.BlockNumber, node.stats.BlockHeight.BlockNumber)
+			w.logger.Errorf("Node Error: %s", msg)
+			err := node.NotifyError(msg)
 			if err != nil {
 				w.logger.Errorf("Error sending 'blocks behind' message %+v", err)
 			}
@@ -133,8 +136,10 @@ func (w *BchdWatcher) evalNodeStats() {
 		if w.LatestBlockWithin.Seconds() > 0 {
 			diffSec := node.stats.BlockHeight.Received.Unix() - bestBlockHeight.Received.Unix()
 			if diffSec > int64(w.LatestBlockWithin.Seconds()) {
-				err := node.NotifyError(fmt.Sprintf("Node is receiving blocks late:\r\nbest block (network) %s\r\nbest block (local) %s",
-					bestBlockHeight.Received.Format(time.RFC3339), node.stats.BlockHeight.Received.Format(time.RFC3339)))
+				msg := fmt.Sprintf("Node is receiving blocks late:\r\nbest block (network) %s\r\nbest block (local) %s",
+					bestBlockHeight.Received.Format(time.RFC3339), node.stats.BlockHeight.Received.Format(time.RFC3339))
+				w.logger.Errorf("Node Error: %s", msg)
+				err := node.NotifyError(msg)
 				if err != nil {
 					w.logger.Errorf("Error sending 'blocks late' message %+v", err)
 				}
