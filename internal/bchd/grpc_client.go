@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
 	"io"
 	"time"
@@ -53,6 +54,11 @@ func NewGrpcClient(node Node, logger log.Logger, monitor *monitoring.HttpMonitor
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(config)))
 	}
 	opts = append(opts, grpc.WithBlock())
+	opts = append(opts, grpc.WithKeepaliveParams(keepalive.ClientParameters{
+		Time:                9 * time.Minute,
+		Timeout:             20 * time.Second,
+		PermitWithoutStream: false,
+	}))
 	grpcClient.conn, err = grpc.DialContext(ctx, target, opts...)
 	logger.Infof("Connecting to gRPC using TLS at %s", node.Address)
 	if err != nil {
@@ -65,6 +71,9 @@ func NewGrpcClient(node Node, logger log.Logger, monitor *monitoring.HttpMonitor
 }
 
 func (gc *GRPCClient) Close() error {
+	if gc.conn == nil {
+		return nil
+	}
 	return gc.conn.Close()
 }
 

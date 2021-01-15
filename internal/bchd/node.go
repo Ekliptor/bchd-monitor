@@ -95,6 +95,7 @@ func (n *Node) NotifyError(msg string) error {
 	errorList := make([]error, 0, 10)
 	sendData := notification.NewNotification(fmt.Sprintf("%s node error", n.Address), msg)
 
+	// TODO make an API call to Prometheus /metrics and include them in message?
 	for _, notify := range n.Notify {
 		switch notify.Method {
 		case "pushover":
@@ -129,11 +130,12 @@ func (n *Node) NotifyError(msg string) error {
 
 		case "email":
 			email, err := notification.NewEmail(notification.EmailConfig{
-				SmtpHost:     notify.SmtpHost,
-				SmtpPort:     notify.SmtpPort,
-				FromAddress:  notify.FromAddress,
-				FromPassword: notify.FromPassword,
-				RecAddress:   notify.RecAddress,
+				SmtpHost:        notify.SmtpHost,
+				SmtpPort:        notify.SmtpPort,
+				AllowSelfSigned: notify.AllowSelfSigned,
+				FromAddress:     notify.FromAddress,
+				FromPassword:    notify.FromPassword,
+				RecAddress:      notify.RecAddress,
 			})
 			if err != nil {
 				errorList = append(errorList, err)
