@@ -22,10 +22,11 @@ type Email struct {
 
 type EmailConfig struct {
 	// SMTP config of our mailbox for outgoing mail
-	SmtpHost string
-	SmtpPort int
-	FromAddress string
-	FromPassword string
+	SmtpHost        string
+	SmtpPort        int
+	AllowSelfSigned bool
+	FromAddress     string
+	FromPassword    string
 
 	RecAddress string // receiver. can be comma-separated list
 }
@@ -56,7 +57,7 @@ func (e *Email) SendNotification(notification *Notification) error {
 		to[i] = strings.TrimSpace(to[i])
 	}
 
-	mailer := NewMailer()
+	mailer := NewMailer(e.config.AllowSelfSigned)
 	header := make(map[string]string)
 	header["From"] = e.config.FromAddress
 	header["To"] = to[0]
@@ -83,18 +84,20 @@ func (e *Email) SendNotification(notification *Notification) error {
 }
 
 type Mailer struct {
-	localName string // localhost
-	dialTimeout time.Duration
+	localName              string // localhost
+	dialTimeout            time.Duration
+	allowSelfSignedTlsCert bool
 }
 
-func NewMailer() *Mailer {
+func NewMailer(allowSelfSignedTlsCert bool) *Mailer {
 	timeoutSec := viper.GetInt("Email.ConnectTimeoutSec")
 	if timeoutSec <= 0 {
 		timeoutSec = 10
 	}
 	return &Mailer{
-		localName: "localhost",
-		dialTimeout: time.Duration(timeoutSec) * time.Second,
+		localName:              "localhost",
+		dialTimeout:            time.Duration(timeoutSec) * time.Second,
+		allowSelfSignedTlsCert: allowSelfSignedTlsCert,
 	}
 }
 
@@ -106,7 +109,10 @@ func (m *Mailer) SendMail(addr string, auth smtp.Auth, from string, to []string,
 	if err != nil {
 		return err
 	}
-	tlsConfig := &tls.Config{ServerName: host}
+	tlsConfig := &tls.Config{
+		ServerName:         host,
+		InsecureSkipVerify: m.allowSelfSignedTlsCert,
+	}
 	if err = m.validateLine(from); err != nil {
 		return err
 	}
@@ -121,7 +127,7 @@ func (m *Mailer) SendMail(addr string, auth smtp.Auth, from string, to []string,
 	}
 
 	dialer := &net.Dialer{
-		Timeout:       m.dialTimeout,
+		Timeout: m.dialTimeout,
 	}
 	conn, err := tls.DialWithDialer(dialer, "tcp", addr, tlsConfig)
 	if err != nil {
@@ -164,7 +170,7 @@ func (m *Mailer) SendMail(addr string, auth smtp.Auth, from string, to []string,
 }
 
 // Use the mail package RFC 2047 to encode any string
-func (m *Mailer) EncodeRFC2047(str string) string{
+func (m *Mailer) EncodeRFC2047(str string) string {
 	addr := mail.Address{Name: str, Address: ""}
 	return strings.Trim(addr.String(), " <@>")
 }
