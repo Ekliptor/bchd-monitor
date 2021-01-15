@@ -98,7 +98,7 @@ func (gc *GRPCClient) ReadTransactionStream(reqCtx context.Context, cancel conte
 	gc.logger.Infof("Chain info from %s: height %d, hash %s", gc.Node.Address,
 		info.GetBestHeight(), hash.String())
 	gc.Node.SetConnected()
-	gc.Node.SetBlockHeight(uint32(info.GetBestHeight()))
+	gc.Node.SetBlockHeight(uint32(info.GetBestHeight()), time.Unix(0, 0))
 
 	// open the TX stream
 	transactionStream, err := gc.Client.SubscribeTransactions(reqCtx, &pb.SubscribeTransactionsRequest{
@@ -140,8 +140,7 @@ func (gc *GRPCClient) ReadTransactionStream(reqCtx context.Context, cancel conte
 			curHeight := uint32(tx.GetBlockHeight())
 			if curHeight != gc.Node.stats.BlockHeight.BlockNumber {
 				gc.logger.Debugf("Node %s received new block %d -> %d", gc.Node.Address, gc.Node.stats.BlockHeight.BlockNumber, curHeight)
-				gc.Node.SetBlockHeight(curHeight)
-				// TODO get "block time" into gRPC API and read it here ;)
+				gc.Node.SetBlockHeight(curHeight, time.Unix(tx.GetTimestamp(), 0))
 			}
 		}
 	}

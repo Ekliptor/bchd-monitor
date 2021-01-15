@@ -54,6 +54,7 @@ type NodeStats struct {
 
 type BestBlockHeight struct {
 	BlockNumber uint32    `json:"block_number"`
+	BlockTime   time.Time `json:"block_time"`
 	Received    time.Time `json:"received"` // when WE saw this node got this block
 }
 
@@ -77,9 +78,10 @@ func (n *Node) SetConnected() {
 	n.updateStats()
 }
 
-func (n *Node) SetBlockHeight(blockHeight uint32) {
+func (n *Node) SetBlockHeight(blockHeight uint32, timestamp time.Time) {
 	n.stats.BlockHeight = BestBlockHeight{
 		BlockNumber: blockHeight,
+		BlockTime:   timestamp,
 		Received:    time.Now(),
 	}
 	n.updateStats()

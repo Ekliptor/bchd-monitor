@@ -123,8 +123,9 @@ func (w *BchdWatcher) evalNodeStats() {
 
 		// check if best block ist behind other nodes
 		if w.BlocksBehindWarning > 0 && node.stats.BlockHeight.BlockNumber+w.BlocksBehindWarning <= bestBlockHeight.BlockNumber {
-			msg := fmt.Sprintf("Node is behind:\r\nbest block (network) %d\r\nbest block (local) %d",
-				bestBlockHeight.BlockNumber, node.stats.BlockHeight.BlockNumber)
+			msg := fmt.Sprintf("Node is behind:\r\nbest block (network) %d at %s\r\nbest block (node) %d at %s",
+				bestBlockHeight.BlockNumber, bestBlockHeight.BlockTime.Format(time.RFC3339),
+				node.stats.BlockHeight.BlockNumber, node.stats.BlockHeight.BlockTime.Format(time.RFC3339))
 			w.logger.Errorf("Node Error: %s", msg)
 			err := node.NotifyError(msg)
 			if err != nil {
@@ -136,7 +137,7 @@ func (w *BchdWatcher) evalNodeStats() {
 		if w.LatestBlockWithin.Seconds() > 0 {
 			diffSec := node.stats.BlockHeight.Received.Unix() - bestBlockHeight.Received.Unix()
 			if diffSec > int64(w.LatestBlockWithin.Seconds()) {
-				msg := fmt.Sprintf("Node is receiving blocks late:\r\nbest block (network) %s\r\nbest block (local) %s",
+				msg := fmt.Sprintf("Node is receiving blocks late:\r\nbest block (network) %s\r\nbest block (node) %s",
 					bestBlockHeight.Received.Format(time.RFC3339), node.stats.BlockHeight.Received.Format(time.RFC3339))
 				w.logger.Errorf("Node Error: %s", msg)
 				err := node.NotifyError(msg)

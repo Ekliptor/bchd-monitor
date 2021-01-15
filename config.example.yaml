@@ -19,6 +19,7 @@ BCHD:
           # Email
           SmtpHost: "smtp.gmail.com"
           SmtpPort: 465
+          AllowSelfSigned: false
           FromAddress: ""
           FromPassword: ""
           RecAddress: "" # receiver email. can be comma-separated list
