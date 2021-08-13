@@ -1,6 +1,8 @@
 package notification
 
 import (
+	"fmt"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"net/http"
 	"time"
@@ -8,6 +10,59 @@ import (
 
 type Notifier interface {
 	SendNotification(notification *Notification) error
+}
+
+func CreateAndSendNotification(sendData *Notification, notify *NotificationReceiver) (Notifier, error) {
+	switch notify.Method {
+	case "pushover":
+		push, err := NewPushover(PushoverConfig{
+			AppToken: notify.AppToken,
+			Receiver: notify.Receiver,
+		})
+		if err != nil {
+			return nil, err
+		}
+		err = push.SendNotification(sendData)
+		if err != nil {
+			return nil, err
+		}
+		return push, nil
+
+	case "telegram":
+		tele, err := NewTelegram(TelegramConfig{
+			Token:   notify.Token,
+			Channel: notify.Channel,
+		})
+		if err != nil {
+			return nil, err
+		}
+		err = tele.SendNotification(sendData)
+		if err != nil {
+			return nil, err
+		}
+		return tele, nil
+
+	case "email":
+		email, err := NewEmail(EmailConfig{
+			SmtpHost:        notify.SmtpHost,
+			SmtpPort:        notify.SmtpPort,
+			AllowSelfSigned: notify.AllowSelfSigned,
+			FromAddress:     notify.FromAddress,
+			FromPassword:    notify.FromPassword,
+			RecAddress:      notify.RecAddress,
+		})
+		if err != nil {
+			return nil, err
+		}
+		err = email.SendNotification(sendData)
+		if err != nil {
+			return nil, err
+		}
+		return email, nil
+
+	default:
+		return nil, errors.New(fmt.Sprintf("unknown notification Method in config: %s", notify.Method))
+	}
 }
 
 type NotificationMethod string

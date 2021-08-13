@@ -79,7 +79,7 @@ func (m *HttpMonitoring) ListenHttp(ctx context.Context) error {
 	return nil
 }
 
-// Adds an event with the current timestamp. It overwrites the previous event
+// AddEvent adds an event with the current timestamp. It overwrites the previous event
 // of the same name (if existing).
 func (m *HttpMonitoring) AddEvent(name string, value interface{}) error {
 	_, exists := m.events[name]
@@ -91,6 +91,16 @@ func (m *HttpMonitoring) AddEvent(name string, value interface{}) error {
 		"when": time.Now().Unix(),
 	}
 	return nil
+}
+
+// GetEvent returns a registered event value.
+func (m *HttpMonitoring) GetEvent(name string) interface{} {
+	event, exists := m.events[name]
+	if exists == false {
+		m.logger.Errorf("Can not fetch unregistered event: %s", name)
+		return nil
+	}
+	return event
 }
 
 // Respond with monitoring data to an HTTP request.

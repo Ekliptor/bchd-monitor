@@ -99,58 +99,10 @@ func (n *Node) NotifyError(msg string) error {
 
 	// TODO make an API call to Prometheus /metrics and include them in message?
 	for _, notify := range n.Notify {
-		switch notify.Method {
-		case "pushover":
-			push, err := notification.NewPushover(notification.PushoverConfig{
-				AppToken: notify.AppToken,
-				Receiver: notify.Receiver,
-			})
-			if err != nil {
-				errorList = append(errorList, err)
-				break
-			}
-			err = push.SendNotification(sendData)
-			if err != nil {
-				errorList = append(errorList, err)
-				break
-			}
-
-		case "telegram":
-			tele, err := notification.NewTelegram(notification.TelegramConfig{
-				Token:   notify.Token,
-				Channel: notify.Channel,
-			})
-			if err != nil {
-				errorList = append(errorList, err)
-				break
-			}
-			err = tele.SendNotification(sendData)
-			if err != nil {
-				errorList = append(errorList, err)
-				break
-			}
-
-		case "email":
-			email, err := notification.NewEmail(notification.EmailConfig{
-				SmtpHost:        notify.SmtpHost,
-				SmtpPort:        notify.SmtpPort,
-				AllowSelfSigned: notify.AllowSelfSigned,
-				FromAddress:     notify.FromAddress,
-				FromPassword:    notify.FromPassword,
-				RecAddress:      notify.RecAddress,
-			})
-			if err != nil {
-				errorList = append(errorList, err)
-				break
-			}
-			err = email.SendNotification(sendData)
-			if err != nil {
-				errorList = append(errorList, err)
-				break
-			}
-
-		default:
-			errorList = append(errorList, errors.New(fmt.Sprintf("unknown notification Method in config: %s", notify.Method)))
+		_, err := notification.CreateAndSendNotification(sendData, &notify)
+		if err != nil {
+			errorList = append(errorList, err)
+			break
 		}
 	}
 
