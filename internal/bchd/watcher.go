@@ -153,7 +153,7 @@ func (w *BchdWatcher) evalNodeStats() {
 func (w *BchdWatcher) monitorNodeConnections() {
 	maxAgeAlive := time.Now().Add(-1 * time.Minute * time.Duration(viper.GetInt("BCHD.MaxAgeLastReceiveMin")))
 	for _, node := range w.Nodes.Nodes {
-		if node.stats.LastReceive.Before(maxAgeAlive) || true {
+		if node.stats.LastReceive.Before(maxAgeAlive) {
 			if node.cancelReqCtx == nil {
 				w.logger.Errorf("Node %s has no cancel stream function attached", node.Address)
 				continue
