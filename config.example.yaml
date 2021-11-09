@@ -46,6 +46,8 @@ BCHD:
   LatestBlockWithinSec: 120 # every node must have the latest block within this interval
   MaxDroppedConnectionsPerHour: 1
 
+  MaxAgeLastReceiveMin: 90 # if no data has been received for this long -> reconnect
+
   # stop sending notifications for n hours after each error (avoid spam)
   PauseNotificationH: 6
 

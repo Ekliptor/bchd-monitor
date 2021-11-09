@@ -39,7 +39,7 @@ func NewBchdWatcher(logger log.Logger, monitor *monitoring.HttpMonitoring) (*Bch
 
 func (w *BchdWatcher) ReadGrpcStreams(ctx context.Context) {
 	for _, node := range w.Nodes.Nodes {
-		go w.readGrpcStream(*node, ctx)
+		go w.readGrpcStream(node, ctx)
 	}
 
 	// evaluate stats & cleanup old data
@@ -51,6 +51,7 @@ func (w *BchdWatcher) ReadGrpcStreams(ctx context.Context) {
 		case <-ticker.C:
 			//ticker = time.NewTicker(tickerInterval) // start a new ticker
 			w.evalNodeStats()
+			w.monitorNodeConnections()
 
 		case <-ctx.Done():
 			terminating = true
@@ -59,15 +60,15 @@ func (w *BchdWatcher) ReadGrpcStreams(ctx context.Context) {
 	}
 }
 
-func (w *BchdWatcher) readGrpcStream(node Node, ctx context.Context) {
+func (w *BchdWatcher) readGrpcStream(node *Node, ctx context.Context) {
 	var err error
 	var client *GRPCClient
-	reqCtx, cancel := context.WithTimeout(context.Background(), 1*time.Millisecond) // dummy context ending immediately to start the loop
+	node.requestContext, node.cancelReqCtx = context.WithTimeout(context.Background(), 1*time.Millisecond) // dummy context ending immediately to start the loop
 
 	terminating := false
 	for !terminating {
 		select {
-		case <-reqCtx.Done():
+		case <-node.requestContext.Done():
 			if client != nil {
 				// something went wrong with our BCHD TX stream, retry
 				w.logger.Errorf("Error in gRPC connection, retrying...")
@@ -75,14 +76,14 @@ func (w *BchdWatcher) readGrpcStream(node Node, ctx context.Context) {
 				time.Sleep(10 * time.Second)
 			}
 
-			client, err = NewGrpcClient(node, w.logger, w.monitor)
+			client, err = NewGrpcClient(*node, w.logger, w.monitor)
 			if err != nil {
 				w.logger.Errorf("Error creating bchd gRPC client: %+v", err)
 				break
 			}
 			//defer client.Close()
-			reqCtx, cancel = context.WithCancel(NewReqContext(node))
-			go client.ReadTransactionStream(reqCtx, cancel)
+			node.requestContext, node.cancelReqCtx = context.WithCancel(NewReqContext(*node))
+			go client.ReadTransactionStream(node.requestContext, node.cancelReqCtx)
 
 		case <-ctx.Done():
 			client.Close()
@@ -145,6 +146,20 @@ func (w *BchdWatcher) evalNodeStats() {
 					w.logger.Errorf("Error sending 'blocks late' message %+v", err)
 				}
 			}
+		}
+	}
+}
+
+func (w *BchdWatcher) monitorNodeConnections() {
+	maxAgeAlive := time.Now().Add(-1 * time.Minute * time.Duration(viper.GetInt("BCHD.MaxAgeLastReceiveMin")))
+	for _, node := range w.Nodes.Nodes {
+		if node.stats.LastReceive.Before(maxAgeAlive) || true {
+			if node.cancelReqCtx == nil {
+				w.logger.Errorf("Node %s has no cancel stream function attached", node.Address)
+				continue
+			}
+			w.logger.Warnf("Received no data from node %s since %s - forcing reconnect", node.Address, time.Since(node.stats.LastReceive))
+			node.cancelReqCtx()
 		}
 	}
 }

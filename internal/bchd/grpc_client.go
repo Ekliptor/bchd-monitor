@@ -129,7 +129,9 @@ func (gc *GRPCClient) ReadTransactionStream(reqCtx context.Context, cancel conte
 			gc.Node.AddConnectError(errors.Wrap(err, "TX stream closed"))
 			break
 		}
+
 		//gc.logger.Debugf("TX: %+v", data)
+		gc.Node.SetLastReceive()
 		if data.GetType() == pb.TransactionNotification_CONFIRMED {
 			tx := data.GetConfirmedTransaction()
 			if tx == nil {

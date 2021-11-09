@@ -1,6 +1,7 @@
 package bchd
 
 import (
+	"context"
 	"fmt"
 	"github.com/Ekliptor/bchd-monitor/internal/monitoring"
 	"github.com/Ekliptor/bchd-monitor/pkg/notification"
@@ -41,12 +42,16 @@ type Node struct {
 
 	stats *NodeStats
 
+	requestContext context.Context
+	cancelReqCtx   context.CancelFunc
+
 	monitor *monitoring.HttpMonitoring
 }
 
 // Node stats available via HTTP API as JSON
 type NodeStats struct {
 	Connected       time.Time           `json:"connected"`
+	LastReceive     time.Time           `json:"last_receive"`
 	BlockHeight     BestBlockHeight     `json:"block_height"`
 	LostConnections []*NodeConnectError `json:"lost_connections"`
 	LastNotified    time.Time           `json:"last_notified"`
@@ -75,6 +80,12 @@ func (n *Node) AddConnectError(err error) {
 
 func (n *Node) SetConnected() {
 	n.stats.Connected = time.Now()
+	n.stats.LastReceive = time.Now()
+	n.updateStats()
+}
+
+func (n *Node) SetLastReceive() {
+	n.stats.LastReceive = time.Now()
 	n.updateStats()
 }
 
