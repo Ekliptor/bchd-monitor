@@ -6,6 +6,7 @@ import (
 	"github.com/Ekliptor/bchd-monitor/internal/log"
 	"github.com/Ekliptor/bchd-monitor/internal/monitoring"
 	"github.com/Ekliptor/bchd-monitor/pkg/trace"
+	"github.com/Ekliptor/bchd-monitor/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"net"
@@ -123,7 +124,8 @@ func (w *BchdWatcher) evalNodeStats() {
 		}
 
 		// check if best block ist behind other nodes
-		if w.BlocksBehindWarning > 0 && node.stats.BlockHeight.BlockNumber+w.BlocksBehindWarning <= bestBlockHeight.BlockNumber {
+		if w.BlocksBehindWarning > 0 && node.stats.BlockHeight.BlockNumber+w.BlocksBehindWarning <= bestBlockHeight.BlockNumber &&
+			!utils.IsZero(bestBlockHeight.BlockTime) && !utils.IsZero(node.stats.BlockHeight.BlockTime) {
 			msg := fmt.Sprintf("Node is behind:\r\nbest block (network) %d at %s\r\nbest block (node) %d at %s",
 				bestBlockHeight.BlockNumber, bestBlockHeight.BlockTime.Format(time.RFC3339),
 				node.stats.BlockHeight.BlockNumber, node.stats.BlockHeight.BlockTime.Format(time.RFC3339))
